@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <% include partials/_head %>
+</head>
+<body>
+  <% include partials/_header %>
+  <table>
+  <% for (shortUrl in urls) {%>
+    <tr>
+      <td><%= shortUrl %> : <%= urls[shortUrl] %></td>
+      <td><a href="/urls/<%= shortUrl %>">Edit</a></td>
+      <form method="POST" action="/urls/<%= shortUrl %>/delete">
+        <td><button type="submit" value="Delete">Delete</button></td>
+      </form>
+    </tr>
+  <% } %>
+  </table>
+</body>
+</html>
+

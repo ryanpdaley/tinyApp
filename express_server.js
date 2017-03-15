@@ -1,13 +1,14 @@
-var express = require("express");
-var app = express();
+const express = require("express");
+const cookieParser = require('cookie-parser')
 const bodyParser = require("body-parser");
 
+var app = express();
 app.use(bodyParser.urlencoded({extended: true}));
 app.set("view engine", "ejs")
 
 
-var PORT = process.env.PORT || 8080; // default port 8080
-var urlDatabase = {
+const PORT = process.env.PORT || 8080; // default port 8080
+let urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
 };
@@ -22,15 +23,13 @@ app.get("/urls/new", (req, res) => {
 });
 
 app.post("/urls", (req, res) => {
-  var shortURL = generateRandomString();
+  let shortURL = generateRandomString();
   urlDatabase[shortURL] = req.body.longURL;
   res.redirect(`/urls/${shortURL}`);
 });
 
 app.post("/urls/:id/delete", (req, res) => {
-  //console.log(urlDatabase)
   delete urlDatabase[req.params.id];
-  //console.log(urlDatabase)
   res.redirect('/urls');
 });
 
@@ -47,7 +46,7 @@ app.get("/urls/:id", (req, res) => {
 });
 
 app.get("/u/:shortURL", (req, res) => {
-  var myShortURL = req.params.shortURL;
+  let myShortURL = req.params.shortURL;
   if (myShortURL in urlDatabase){
     let longURL = urlDatabase[req.params.shortURL];
     if (!(longURL.startsWith('http://') || longURL.startsWith('https://'))){

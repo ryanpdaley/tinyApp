@@ -4,6 +4,7 @@ const bodyParser = require("body-parser");
 
 var app = express();
 app.use(bodyParser.urlencoded({extended: true}));
+app.use(cookieParser())
 app.set("view engine", "ejs")
 
 
@@ -14,34 +15,26 @@ let urlDatabase = {
 };
 
 app.get("/urls", (req, res) => {
-  let templateVars = { urls: urlDatabase };
+  let templateVars = {
+    username: req.cookies["username"],
+    urls: urlDatabase
+  };
   res.render("urls_index", templateVars);
 });
 
 app.get("/urls/new", (req, res) => {
-  res.render("urls_new");
-});
-
-app.post("/urls", (req, res) => {
-  let shortURL = generateRandomString();
-  urlDatabase[shortURL] = req.body.longURL;
-  res.redirect(`/urls/${shortURL}`);
-});
-
-app.post("/urls/:id/delete", (req, res) => {
-  delete urlDatabase[req.params.id];
-  res.redirect('/urls');
-});
-
-app.post("/urls/:id", (req, res) => {
-  console.log(urlDatabase)
-  urlDatabase[req.params.id] = req.body.longURL;
-  console.log(urlDatabase)
-  res.redirect('/urls/');
+  let templateVars = {
+    username: req.cookies["username"]
+  };
+  res.render("urls_new", templateVars);
 });
 
 app.get("/urls/:id", (req, res) => {
-  let templateVars = { shortURL: req.params.id, urls: urlDatabase };
+  let templateVars = {
+    shortURL: req.params.id,
+    username: req.cookies["username"],
+    urls: urlDatabase
+  };
   res.render("urls_show", templateVars);
 });
 
@@ -68,6 +61,39 @@ app.get("/404", (req, res) => {
 
 app.get("/hello", (req, res) => {
   res.end("<html><body>Hello <b>World</b></body></html>\n");
+});
+
+app.post("/login", (req, res) => {
+  uName = req.body.username
+  if (uName) {
+    res.cookie('username', req.body.username)
+  }
+  res.redirect('/urls');
+});
+
+app.post("/logout", (req, res) => {
+  res.clearCookie('username')
+  res.redirect('/urls');
+});
+
+app.post("/urls", (req, res) => {
+  let shortURL = generateRandomString();
+  longURL = req.body.longURL;
+  if (!(longURL.startsWith('http://') || longURL.startsWith('https://'))){
+    longURL = 'http://' + longURL;
+  }
+  urlDatabase[shortURL] = longURL;
+  res.redirect(`/urls/${shortURL}`);
+});
+
+app.post("/urls/:id", (req, res) => {
+  urlDatabase[req.params.id] = req.body.longURL;
+  res.redirect('/urls');
+});
+
+app.post("/urls/:id/delete", (req, res) => {
+  delete urlDatabase[req.params.id];
+  res.redirect('/urls');
 });
 
 app.listen(PORT, () => {

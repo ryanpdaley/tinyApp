@@ -6,11 +6,13 @@
 <body>
   <% include partials/_header %>
   <table>
-  <% for (shortUrl in urls) {%>
+  <% console.log(urls) %>
+  <% for (url in urls) {%>
     <tr>
-      <td><%= shortUrl %> : <%= urls[shortUrl] %></td>
-      <td><a href="/urls/<%= shortUrl %>">Edit</a></td>
-      <form method="POST" action="/urls/<%= shortUrl %>/delete">
+      <% console.log(url) %>
+      <td><%= urls[url]['shortURL'] %> : <%= urls[url]['longURL'] %></td>
+      <td><a href="/urls/<%= urls[url]['shortURL'] %>">Edit</a></td>
+      <form method="POST" action="/urls/<%= urls[url]['shortURL'] %>/delete">
         <td><button type="submit" value="Delete">Delete</button></td>
       </form>
     </tr>

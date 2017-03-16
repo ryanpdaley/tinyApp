@@ -7,23 +7,17 @@
 </table>
 <table>
   <tr>
-    <td>
-      <form action="/login" method="POST">
-        <label for="usernameForm">Name:</label>
-        <input id="usernameForm" type="text" name="username" style="width: 150px">
-        <input type="submit" value="Submit">
-      </form>
-    </td>
-    <td>
-    <% if (username) { %>
-      Username: <%= username %>
+  <% if (user.user_id) {%>
+      <td>Currently logged in as: <%= user.user_id %></td>
       <td>
         <form action="/logout" method="POST">
           <input type="submit" value="Logout">
         </form>
       </td>
-    <% } %>
-    </td>
+    <%} else {%>
+      <td><a href='/register'>Register</a></td>
+      <td><a href='/login'>Log in</a></td>
+    <%}%>
   </tr>
 </table>
 <hr>

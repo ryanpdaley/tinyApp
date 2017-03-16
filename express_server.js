@@ -9,22 +9,44 @@ app.set("view engine", "ejs")
 
 
 const PORT = process.env.PORT || 8080; // default port 8080
-let urlDatabase = {
+
+const users = {
+  "userRandomID": {
+    id: "userRandomID",
+    email: "user@example.com",
+    password: "purple-monkey-dinosaur"
+  },
+ "user2RandomID": {
+    id: "user2RandomID",
+    email: "user2@example.com",
+    password: "dishwasher-funk"
+  }
+};
+
+const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
 };
 
+app.get("/login", (req, res) => {
+  let templateVars = {
+    urls: urlDatabase,
+    user: req.cookies
+  };
+  res.render("users_login", templateVars);
+});
+
 app.get("/urls", (req, res) => {
   let templateVars = {
-    username: req.cookies["username"],
-    urls: urlDatabase
+    urls: urlDatabase,
+    user: req.cookies
   };
   res.render("urls_index", templateVars);
 });
 
 app.get("/urls/new", (req, res) => {
   let templateVars = {
-    username: req.cookies["username"]
+    user: req.cookies
   };
   res.render("urls_new", templateVars);
 });
@@ -32,8 +54,8 @@ app.get("/urls/new", (req, res) => {
 app.get("/urls/:id", (req, res) => {
   let templateVars = {
     shortURL: req.params.id,
-    username: req.cookies["username"],
-    urls: urlDatabase
+    urls: urlDatabase,
+    user: req.cookies
   };
   res.render("urls_show", templateVars);
 });
@@ -47,7 +69,7 @@ app.get("/u/:shortURL", (req, res) => {
     }
     res.redirect(301, longURL);
   } else {
-    res.redirect(404, "404");
+    res.sendStatus(404);
   }
 });
 
@@ -56,24 +78,62 @@ app.get("/", (req, res) => {
 });
 
 app.get("/404", (req, res) => {
-  res.render("404");
+  res.sendStatus(404);
 });
 
 app.get("/hello", (req, res) => {
   res.end("<html><body>Hello <b>World</b></body></html>\n");
 });
 
+app.get("/register", (req, res) => {
+  let templateVars = {
+    user: req.cookies
+  };
+  res.render("users_register", templateVars);
+});
+
 app.post("/login", (req, res) => {
-  uName = req.body.username
-  if (uName) {
-    res.cookie('username', req.body.username)
+  let email = req.body.email
+  let password = req.body.password
+  let validUser = false
+  for (let userID in users){
+    if (users[userID]['email'] === email && users[userID]['password'] === password){
+      validUser = userID
+
+    }
   }
-  res.redirect('/urls');
+  if (! validUser === false ){
+    res.cookie('user_id', validUser)
+    res.redirect('/urls');
+  } else {
+    res.sendStatus(403);
+  }
 });
 
 app.post("/logout", (req, res) => {
-  res.clearCookie('username')
+  res.clearCookie('user_id')
   res.redirect('/urls');
+});
+
+app.post("/register", (req, res) => {
+  let emailExist = false
+  let id = generateRandomString()
+  let email = req.body.email
+  let password = req.body.password
+  for (var addr in users){
+    if (users[addr]['email'] === email) emailExist = true
+  }
+  if (email === '' || password === '' || emailExist) res.sendStatus(404);
+  else {
+    res.cookie('user_id', id)
+    users[id] = {
+      id: id,
+      email: email,
+      password: password
+    }
+    console.log(users)
+    res.redirect('/urls');
+  }
 });
 
 app.post("/urls", (req, res) => {

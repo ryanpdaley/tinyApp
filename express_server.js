@@ -150,11 +150,16 @@ app.post("/register", (req, res) => {
 
 app.post("/urls", (req, res) => {
   let shortURL = generateRandomString();
-  longURL = req.body.longURL;
+  let longURL = req.body.longURL
+  let userID = req.cookies.user_id
   if (!(longURL.startsWith('http://') || longURL.startsWith('https://'))){
     longURL = 'http://' + longURL;
   }
-  urlDatabase[shortURL] = longURL;
+  urlDatabase[shortURL] = {
+    shortURL: shortURL,
+    longURL: longURL,
+    userID: userID
+  };
   res.redirect(`/urls/${shortURL}`);
 });
 
@@ -162,11 +167,11 @@ app.post("/urls/:id", (req, res) => {
   let shortURL = req.params.id
   let longURL = req.body.longURL
   let userID = req.cookies.user_id
-  urlDatabase[req.params.id] = {
+  urlDatabase[shortURL] = {
     shortURL: shortURL,
     longURL: longURL,
     userID: userID
-  }
+  };
   res.redirect('/urls');
 });
 

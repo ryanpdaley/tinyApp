@@ -9,10 +9,10 @@
   <% for (url in urls) {%>
     <tr>
       <td><%= urls[url]['shortURL'] %> : <%= urls[url]['longURL'] %></td>
-      <td><a href="/urls/<%= urls[url]['shortURL'] %>">Edit</a></td>
-      <form method="POST" action="/urls/<%= urls[url]['shortURL'] %>/delete">
-        <td><button type="submit" value="Delete">Delete</button></td>
-      </form>
+        <td><a href="/urls/<%= urls[url]['shortURL'] %>">Edit</a></td>
+        <form method="POST" action="/urls/<%= urls[url]['shortURL'] %>/delete">
+          <td><button type="submit" value="Delete">Delete</button></td>
+        </form>
     </tr>
   <% } %>
   </table>

@@ -45,9 +45,16 @@ app.get("/login", (req, res) => {
 });
 
 app.get("/urls", (req, res) => {
+  user = req.cookies
+  userURLs = {}
+  for (let item in urlDatabase) {
+    if (urlDatabase[item]['userID'] === user.user_id) {
+      userURLs[item] = urlDatabase[item]
+    }
+  }
   let templateVars = {
-    urls: urlDatabase,
-    user: req.cookies
+    urls: userURLs,
+    user: user
   };
   res.render("urls_index", templateVars);
 });
@@ -75,7 +82,7 @@ app.get("/urls/:id", (req, res) => {
 app.get("/u/:shortURL", (req, res) => {
   let myShortURL = req.params.shortURL;
   if (myShortURL in urlDatabase){
-    let longURL = urlDatabase[req.params.shortURL];
+    let longURL = urlDatabase[req.params.shortURL]['longURL'];
     if (!(longURL.startsWith('http://') || longURL.startsWith('https://'))){
       longURL = 'http://' + longURL;
     }
@@ -111,7 +118,6 @@ app.post("/login", (req, res) => {
   for (let userID in users){
     if (users[userID]['email'] === email && users[userID]['password'] === password){
       validUser = userID
-
     }
   }
   if (! validUser === false ){
@@ -148,6 +154,7 @@ app.post("/register", (req, res) => {
   }
 });
 
+//  Adds a URL
 app.post("/urls", (req, res) => {
   let shortURL = generateRandomString();
   let longURL = req.body.longURL
@@ -163,21 +170,33 @@ app.post("/urls", (req, res) => {
   res.redirect(`/urls/${shortURL}`);
 });
 
+//  Updates an existing URL
 app.post("/urls/:id", (req, res) => {
   let shortURL = req.params.id
   let longURL = req.body.longURL
   let userID = req.cookies.user_id
-  urlDatabase[shortURL] = {
-    shortURL: shortURL,
-    longURL: longURL,
-    userID: userID
-  };
-  res.redirect('/urls');
+  if (urlDatabase[shortURL]['userID'] === userID) {
+    urlDatabase[shortURL] = {
+      shortURL: shortURL,
+      longURL: longURL,
+      userID: userID
+    };
+    res.redirect('/urls');
+  } else {
+    res.sendStatus(403);
+  }
 });
 
+//  Deletes an existing URL
 app.post("/urls/:id/delete", (req, res) => {
-  delete urlDatabase[req.params.id];
-  res.redirect('/urls');
+  let userID = req.cookies.user_id
+  let shortURL = req.params.id
+  if (urlDatabase[shortURL]['userID'] === userID) {
+    delete urlDatabase[req.params.id];
+    res.redirect('/urls');
+  } else {
+    res.sendStatus(403);
+  }
 });
 
 app.listen(PORT, () => {

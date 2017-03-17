@@ -20,6 +20,8 @@ const users = {};
 
 const urlDatabase = {};
 
+const visit = {};
+
 //  Deletes an existing URL
 app.delete("/urls/:id/", (req, res) => {
   let userID = req.session.user_id
@@ -76,16 +78,31 @@ app.get("/urls/:id", (req, res) => {
     user: req.session.user_id,
     users: users
   };
+  console.log('hi')
   res.render("urls_show", templateVars);
 });
 
 app.get("/u/:shortURL", (req, res) => {
   let myShortURL = req.params.shortURL;
+  let currentUser = '';
+  if (req.session.user_id){
+    currentUser = req.session.user_id
+  } else {
+    req.session.user_id = generateRandomString()
+    currentUser = req.session.user_id
+  }
+  console.log(currentUser)
   if (myShortURL in urlDatabase){
     let longURL = urlDatabase[req.params.shortURL]['longURL'];
     if (!(longURL.startsWith('http://') || longURL.startsWith('https://'))){
       longURL = 'http://' + longURL;
     }
+    visit[generateRandomString()] = {
+      shortURL: myShortURL,
+      user: currentUser,
+      timestamp: getNow()
+    };
+    console.log(visit)
     res.redirect(301, longURL);
   } else {
     res.sendStatus(404);
@@ -190,4 +207,25 @@ app.listen(PORT, () => {
 
 function generateRandomString() {
   return Math.random().toString(36).substr(2, 6)
+}
+
+function getNow() {
+  var today = new Date();
+  var dd = padder(Number(today.getDate()));
+  var mm = padder(Number(today.getMonth())+1);
+  var yyyy = padder(Number(today.getFullYear()));
+  var h = padder(Number(today.getHours()));
+  var m = padder(Number(today.getMinutes()));
+  var s = padder(Number(today.getSeconds()));
+  return `${yyyy}-${mm}-${dd}_${h}${m}${s}`
+
+}
+
+function padder(toPad) {
+  let padStr = toPad.toString();
+  if (padStr.length < 2) {
+    return '0' + padStr;
+  } else {
+    return padStr;
+  }
 }

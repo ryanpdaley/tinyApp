@@ -1,13 +1,16 @@
 const express = require("express");
-const cookieParser = require('cookie-parser')
+const cookieSession = require('cookie-session')
 const bodyParser = require("body-parser");
 const bcrypt = require('bcrypt');
 
 var app = express();
-app.use(bodyParser.urlencoded({extended: true}));
-app.use(cookieParser())
 app.set("view engine", "ejs")
-
+app.set('trust proxy', 1)
+app.use(bodyParser.urlencoded({extended: true}));
+app.use(cookieSession({
+  name: 'session',
+  keys: ['key1', 'key2']
+}))
 
 const PORT = process.env.PORT || 8080; // default port 8080
 
@@ -40,16 +43,16 @@ const urlDatabase = {
 app.get("/login", (req, res) => {
   let templateVars = {
     urls: urlDatabase,
-    user: req.cookies
+    user: req.session.user_id
   };
   res.render("users_login", templateVars);
 });
 
 app.get("/urls", (req, res) => {
-  user = req.cookies
+  user = req.session.user_id
   userURLs = {}
   for (let item in urlDatabase) {
-    if (urlDatabase[item]['userID'] === user.user_id) {
+    if (urlDatabase[item]['userID'] === user) {
       userURLs[item] = urlDatabase[item]
     }
   }
@@ -62,9 +65,9 @@ app.get("/urls", (req, res) => {
 
 app.get("/urls/new", (req, res) => {
   let templateVars = {
-    user: req.cookies
+    user: req.session.user_id
   };
-  if (! req.cookies.user_id){
+  if (! req.session.user_id){
     res.redirect("/login");
   } else {
     res.render("urls_new", templateVars);
@@ -75,7 +78,7 @@ app.get("/urls/:id", (req, res) => {
   let templateVars = {
     shortURL: req.params.id,
     urls: urlDatabase,
-    user: req.cookies
+    user: req.session.user_id
   };
   res.render("urls_show", templateVars);
 });
@@ -107,7 +110,7 @@ app.get("/hello", (req, res) => {
 
 app.get("/register", (req, res) => {
   let templateVars = {
-    user: req.cookies
+    user: req.session.user_id
   };
   res.render("users_register", templateVars);
 });
@@ -122,7 +125,7 @@ app.post("/login", (req, res) => {
     }
   }
   if (! validUser === false ){
-    res.cookie('user_id', validUser)
+    req.session.user_id = validUser;
     res.redirect('/urls');
   } else {
     res.sendStatus(403);
@@ -130,7 +133,7 @@ app.post("/login", (req, res) => {
 });
 
 app.post("/logout", (req, res) => {
-  res.clearCookie('user_id')
+  req.session = null
   res.redirect('/urls');
 });
 
@@ -144,13 +147,12 @@ app.post("/register", (req, res) => {
   }
   if (email === '' || password === '' || emailExist) res.sendStatus(404);
   else {
-    res.cookie('user_id', id)
+    req.session.user_id = id;
     users[id] = {
       id: id,
       email: email,
       password: bcrypt.hashSync(password, 10)
     }
-    console.log(users)
     res.redirect('/urls');
   }
 });
@@ -159,7 +161,7 @@ app.post("/register", (req, res) => {
 app.post("/urls", (req, res) => {
   let shortURL = generateRandomString();
   let longURL = req.body.longURL
-  let userID = req.cookies.user_id
+  let userID = req.session.user_id
   if (!(longURL.startsWith('http://') || longURL.startsWith('https://'))){
     longURL = 'http://' + longURL;
   }
@@ -175,7 +177,7 @@ app.post("/urls", (req, res) => {
 app.post("/urls/:id", (req, res) => {
   let shortURL = req.params.id
   let longURL = req.body.longURL
-  let userID = req.cookies.user_id
+  let userID = req.session.user_id
   if (urlDatabase[shortURL]['userID'] === userID) {
     urlDatabase[shortURL] = {
       shortURL: shortURL,
@@ -190,7 +192,7 @@ app.post("/urls/:id", (req, res) => {
 
 //  Deletes an existing URL
 app.post("/urls/:id/delete", (req, res) => {
-  let userID = req.cookies.user_id
+  let userID = req.session.user_id
   let shortURL = req.params.id
   if (urlDatabase[shortURL]['userID'] === userID) {
     delete urlDatabase[req.params.id];

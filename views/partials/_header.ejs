@@ -7,8 +7,8 @@
 </table>
 <table>
   <tr>
-  <% if (user.user_id) {%>
-      <td>Currently logged in as: <%= user.user_id %></td>
+  <% if (user) {%>
+      <td>Currently logged in as: <%= user %></td>
       <td>
         <form action="/logout" method="POST">
           <input type="submit" value="Logout">

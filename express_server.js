@@ -43,7 +43,8 @@ const urlDatabase = {
 app.get("/login", (req, res) => {
   let templateVars = {
     urls: urlDatabase,
-    user: req.session.user_id
+    user: req.session.user_id,
+    users: users
   };
   res.render("users_login", templateVars);
 });
@@ -58,14 +59,16 @@ app.get("/urls", (req, res) => {
   }
   let templateVars = {
     urls: userURLs,
-    user: user
+    user: user,
+    users: users
   };
   res.render("urls_index", templateVars);
 });
 
 app.get("/urls/new", (req, res) => {
   let templateVars = {
-    user: req.session.user_id
+    user: req.session.user_id,
+    users: users
   };
   if (! req.session.user_id){
     res.redirect("/login");
@@ -78,7 +81,8 @@ app.get("/urls/:id", (req, res) => {
   let templateVars = {
     shortURL: req.params.id,
     urls: urlDatabase,
-    user: req.session.user_id
+    user: req.session.user_id,
+    users: users
   };
   res.render("urls_show", templateVars);
 });
@@ -110,7 +114,8 @@ app.get("/hello", (req, res) => {
 
 app.get("/register", (req, res) => {
   let templateVars = {
-    user: req.session.user_id
+    user: req.session.user_id,
+    users: users
   };
   res.render("users_register", templateVars);
 });

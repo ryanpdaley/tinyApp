@@ -14,33 +14,11 @@ app.use(cookieSession({
 }))
 app.use(methodOverride('_method'))
 
-const PORT = process.env.PORT || 8080; // default port 8080
+const PORT = process.env.PORT || 3000; // default port 8080
 
-const users = {
-  "userRandomID": {
-    id: "userRandomID",
-    email: "user@example.com",
-    password: "purple-monkey-dinosaur"
-  },
- "user2RandomID": {
-    id: "user2RandomID",
-    email: "user2@example.com",
-    password: "dishwasher-funk"
-  }
-};
+const users = {};
 
-const urlDatabase = {
-  "b2xVn2": {
-    shortURL: "b2xVn2",
-    longURL: "http://www.lighthouselabs.ca",
-    userID: "test"
-  },
-  "9sm5xK": {
-    shortURL: "9sm5xK",
-    longURL: "http://www.google.com",
-    userID: "test"
-  }
-};
+const urlDatabase = {};
 
 //  Deletes an existing URL
 app.delete("/urls/:id/", (req, res) => {
@@ -92,13 +70,18 @@ app.get("/urls/new", (req, res) => {
 });
 
 app.get("/urls/:id", (req, res) => {
+  let myShortURL = req.params.id;
   let templateVars = {
     shortURL: req.params.id,
     urls: urlDatabase,
     user: req.session.user_id,
     users: users
   };
-  res.render("urls_show", templateVars);
+  if (myShortURL in urlDatabase){
+    res.render("urls_show", templateVars);
+  } else {
+    res.sendStatus(404);
+  }
 });
 
 app.get("/u/:shortURL", (req, res) => {

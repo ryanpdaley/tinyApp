@@ -2,6 +2,7 @@ const express = require("express");
 const cookieSession = require('cookie-session')
 const bodyParser = require("body-parser");
 const bcrypt = require('bcrypt');
+const methodOverride = require('method-override')
 
 var app = express();
 app.set("view engine", "ejs")
@@ -11,12 +12,25 @@ app.use(cookieSession({
   name: 'session',
   keys: ['key1', 'key2']
 }))
+app.use(methodOverride('_method'))
 
 const PORT = process.env.PORT || 3000; // default port 8080
 
 const users = {};
 
 const urlDatabase = {};
+
+//  Deletes an existing URL
+app.delete("/urls/:id/", (req, res) => {
+  let userID = req.session.user_id
+  let shortURL = req.params.id
+  if (urlDatabase[shortURL]['userID'] === userID) {
+    delete urlDatabase[req.params.id];
+    res.redirect('/urls');
+  } else {
+    res.sendStatus(403);
+  }
+});
 
 app.get("/login", (req, res) => {
   let templateVars = {
@@ -79,15 +93,11 @@ app.get("/u/:shortURL", (req, res) => {
 });
 
 app.get("/", (req, res) => {
-  res.end("Hello!");
+  res.redirect("/urls/new");
 });
 
 app.get("/404", (req, res) => {
   res.sendStatus(404);
-});
-
-app.get("/hello", (req, res) => {
-  res.end("<html><body>Hello <b>World</b></body></html>\n");
 });
 
 app.get("/register", (req, res) => {
@@ -173,17 +183,6 @@ app.post("/urls/:id", (req, res) => {
   }
 });
 
-//  Deletes an existing URL
-app.post("/urls/:id/delete", (req, res) => {
-  let userID = req.session.user_id
-  let shortURL = req.params.id
-  if (urlDatabase[shortURL]['userID'] === userID) {
-    delete urlDatabase[req.params.id];
-    res.redirect('/urls');
-  } else {
-    res.sendStatus(403);
-  }
-});
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
